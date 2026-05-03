@@ -1,35 +1,32 @@
-# crucible:type approval
-# Prevent automatic approval (auto_apply) outside business hours.
-# Runs triggered manually by an authenticated user are still allowed through.
-# Adjust ALLOWED_HOURS and ALLOWED_DAYS to match your org's change window.
+# Require manual approval for automated runs outside business hours.
+# Runs triggered by a human (manual, api) are always allowed through.
+# Adjust ALLOWED_DAYS, ALLOWED_START, ALLOWED_END to match your change window.
 package crucible.approval.block_outside_business_hours
 
 import rego.v1
 
-# Mon=1 … Fri=5 in Go's time.Weekday
-ALLOWED_DAYS   := {1, 2, 3, 4, 5}
-ALLOWED_START  := 9   # 09:00 UTC
-ALLOWED_END    := 17  # 17:00 UTC (exclusive)
+ALLOWED_DAYS  := {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
+ALLOWED_START := 9   # 09:00 UTC inclusive
+ALLOWED_END   := 17  # 17:00 UTC exclusive
 
 default require_approval := false
 
+# Only gate automated runs; humans triggering runs bypass this check.
 require_approval if {
-	input.trigger == "push"           # auto-triggered runs only
+	not input.run.trigger in {"manual", "api"}
 	in_change_blackout
 }
 
 in_change_blackout if {
-	not number_in_set(input.weekday, ALLOWED_DAYS)
+	not time.weekday(time.now_ns()) in ALLOWED_DAYS
 }
 
 in_change_blackout if {
-	input.hour < ALLOWED_START
+	h := time.clock([time.now_ns(), "UTC"])[0]
+	h < ALLOWED_START
 }
 
 in_change_blackout if {
-	input.hour >= ALLOWED_END
-}
-
-number_in_set(n, s) if {
-	s[n]
+	h := time.clock([time.now_ns(), "UTC"])[0]
+	h >= ALLOWED_END
 }

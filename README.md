@@ -10,12 +10,12 @@ Connect this repository as a **Policy GitOps source** in Crucible (Settings → 
 
 | File | Type | What it does |
 |------|------|-------------|
-| `post_plan/require_approval_on_destroy.rego` | `post_plan` | Gate any plan that destroys ≥1 resource |
-| `post_plan/require_approval_on_high_cost.rego` | `post_plan` | Gate when estimated monthly cost delta > $100 (adjustable) |
+| `approval/require_approval_on_destroy.rego` | `approval` | Gate any plan that destroys ≥1 resource |
+| `approval/require_approval_on_high_cost.rego` | `approval` | Gate when estimated monthly cost delta > $100 (requires Infracost) |
+| `approval/production_safeguard.rego` | `approval` | Require approval for stacks whose name contains `prod` |
+| `approval/block_outside_business_hours.rego` | `approval` | Require approval for automated runs outside Mon–Fri 09:00–17:00 UTC |
 | `post_plan/warn_on_large_change.rego` | `post_plan` | Warn when plan affects ≥20 resources (adjustable) |
-| `post_plan/production_safeguard.rego` | `post_plan` | Require approval for stacks whose name contains `prod` |
-| `post_plan/no_public_s3_buckets.rego` | `post_plan` | Block CRITICAL S3 public-access findings from Checkov/Trivy |
-| `approval/block_outside_business_hours.rego` | `approval` | Prevent auto-triggered applies outside Mon–Fri 09:00–17:00 UTC |
+| `post_plan/no_public_s3_buckets.rego` | `post_plan` | Block automated creates on storage stacks pending security review |
 | `trigger/skip_docs_only_changes.rego` | `trigger` | Skip runs when only `.md`/docs files changed |
 | `pre_apply/require_annotation_before_apply.rego` | `pre_apply` | Require an operator note before any apply |
 
